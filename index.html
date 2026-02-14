@@ -207,6 +207,16 @@
       font-weight: 600;
     }
 
+    /* YouTube player container - ẩn nhưng vẫn hoạt động */
+    #youtube-player {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -9999;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 15px;
@@ -304,7 +314,7 @@
     <div class="to">Gửi đến</div>
     <div class="name">Ngân 💕</div>
 
-    <h1>Happy Valentine’s Day</h1>
+    <h1>Happy Valentine's Day</h1>
     <div class="subtitle">Tui có điều này muốn nói với Ngân 😘...</div>
 
     <p class="message" id="mainMessage">
@@ -327,14 +337,62 @@
     </div>
   </div>
 
+  <!-- YouTube iframe player container (ẩn) -->
+  <div id="youtube-player"></div>
+
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
+    let player;
+    let isPlaying = false;
+
+    // Khởi tạo YouTube Player khi API sẵn sàng
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-player', {
+        height: '1',
+        width: '1',
+        videoId: 'GxldQ9eX2wo', // Video ID từ link: https://www.youtube.com/watch?v=GxldQ9eX2wo
+        playerVars: {
+          'autoplay': 0,
+          'controls': 0,
+          'disablekb': 1,
+          'enablejsapi': 1,
+          'fs': 0,
+          'iv_load_policy': 3,
+          'modestbranding': 1,
+          'playsinline': 1,
+          'rel': 0,
+          'showinfo': 0
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    // Khi player sẵn sàng
+    function onPlayerReady(event) {
+      // Player đã sẵn sàng, có thể phát nhạc khi cần
+    }
+
+    // Theo dõi trạng thái phát nhạc
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        isPlaying = true;
+      } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+        isPlaying = false;
+      }
+    }
+
+    // Các phần tử DOM
     const btnShow = document.getElementById("btnShow");
     const hiddenMessage = document.getElementById("hiddenMessage");
     const subtitle = document.querySelector(".subtitle");
     const mainMessage = document.getElementById("mainMessage");
     const fromSection = document.querySelector(".from");
 
-    // Hàm xử lý toggle message
+    // Hàm xử lý toggle message và phát nhạc
     function toggleMessage() {
       const isShown = hiddenMessage.classList.contains("show");
 
@@ -345,6 +403,11 @@
         mainMessage.classList.remove("hide");
         fromSection.classList.remove("show");
         btnShow.textContent = "Xem điều tui muốn nói";
+        
+        // Dừng nhạc nếu đang phát
+        if (player && isPlaying) {
+          player.pauseVideo();
+        }
       } else {
         // Hiện lời tỏ tình và ẩn subtitle + message ban đầu
         subtitle.classList.add("hide");
@@ -352,6 +415,11 @@
         hiddenMessage.classList.add("show");
         fromSection.classList.add("show");
         btnShow.textContent = "Đọc lại lời tỏ tình 💘";
+        
+        // Phát nhạc
+        if (player) {
+          player.playVideo();
+        }
       }
     }
 
